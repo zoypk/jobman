@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from .forms import RegistrationForm, LoginForm, PostForm
 from datetime import datetime 
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, UserMixin, login_user, logout_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -90,7 +90,7 @@ def login():
         form = LoginForm()
         if form.validate_on_submit():
               user = User.query.filter_by(email=form.email.data).first()
-              if user and bycrypt.check_password_hash(user.password, form.password.data):
+              if user and bcrypt.check_password_hash(user.password, form.password.data):
                     login_user(user, remember=form.remember.data)
                     return redirect(url_for('home'))
               else:
@@ -113,6 +113,15 @@ def new_post():
               flash('Your post has been created!', 'success')
               return redirect(url_for('home'))
         return render_template('create_post.html', title='New Post', form = form, legend='New Post')
+
+@app.route("/post/<int:post_id>")
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', post=post)
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
