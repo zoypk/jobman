@@ -1,17 +1,22 @@
 from flask import Flask, render_template, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
-from forms import RegistrationForm, LoginForm
+from .forms import RegistrationForm, LoginForm, PostForm
 from datetime import datetime 
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '998251e474ef6a9ae2b6b0804e7d4eb0'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance/site.db")}'
 db = SQLAlchemy(app )
 bcrypt = Bcrypt(app)
 loginmanager = LoginManager(app)
-
+# login_manager.login_view = 'login'
+# login_manager.login_message_category = 'info'
+# getting circular import issue
 
 @loginmanager.user_loader
 def load_user(user_id):
@@ -40,24 +45,25 @@ class Post(db.Model):
            return f"Post('{self.title}')"      
 
 
-posts = [
-    {
-        'location': 'Calicut',
-        'title': 'Software Developer',
-        'content': 'First ',
-        'level': 'Fresher'
-    },
-    {
-        'location': 'Bangalore',
-        'title': 'Content Writer',
-        'content': 'Second post content',
-        'level': '1 year experience'
-    }
-]
+# posts = [
+#     {
+#         'location': 'Calicut',
+#         'title': 'Software Developer',
+#         'content': 'First ',
+#         'level': 'Fresher'
+#     },
+#     {
+#         'location': 'Bangalore',
+#         'title': 'Content Writer',
+#         'content': 'Second post content',
+#         'level': '1 year experience'
+#     }
+# ]
 
 @app.route("/")
 @app.route("/home")
 def home():
+    posts = Post.query.all()
     return render_template('home.html', posts=posts)
 
 
@@ -67,15 +73,17 @@ def about():
 
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
-        form = RegistrationForm()
-        if form.validate_on_submit():
-              hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-              user = User(username=form.username.data, email=form.email.data, password=hashed_password)
-              db.session.add(user)
-              db.session.commit()
-              flash(f'Account created for {form.username.data}!', 'success')
-              return redirect(url_for('login'))
-        return render_template('signup.html',form = form)
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You are now able to log in', 'success')
+        return redirect(url_for('login'))
+    return render_template('signup.html', title='Register', form=form)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -94,12 +102,17 @@ def logout():
       logout_user()
       return redirect(url_for('home'))      
 
-@app.route("/account")
-def account():
-        return render_template('account.html', form = form)
-
-
-
+@app.route("/post/new", methods=['GET', 'POST'])
+# @login_required
+def new_post():
+        form = PostForm()
+        if form.validate_on_submit():
+              post = Post(title = form.title.data, content=form.content.data, location=form.location.data, level=form.level.data, user_id=1)
+              db.session.add(post)
+              db.session.commit()
+              flash('Your post has been created!', 'success')
+              return redirect(url_for('home'))
+        return render_template('create_post.html', title='New Post', form = form, legend='New Post')
 
 if __name__ == '__main__':
     app.run(debug=True)
