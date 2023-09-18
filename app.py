@@ -1,6 +1,6 @@
-from flask import Flask, render_template, url_for, flash, redirect
+from flask import Flask, render_template, url_for, flash, redirect, request, abort
 from flask_sqlalchemy import SQLAlchemy
-from .forms import RegistrationForm, LoginForm, PostForm
+from .forms import RegistrationForm, LoginForm, PostForm, Apply
 from datetime import datetime 
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
@@ -117,10 +117,47 @@ def new_post():
 @app.route("/post/<int:post_id>")
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', post=post)
+    return render_template('post.html', title=post.title, post=post)
+
+@app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+def update_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        post.location = form.location.data
+        post.level = form.level.data
+        db.session.commit()
+        flash('Your post has been updated', 'success')
+        return redirect(url_for('post', post_id=post.id))
+    elif request.method == 'GET':
+        # Populate the form fields with existing post data
+        form.title.data = post.title
+        form.content.data = post.content
+        form.location.data = post.location
+        form.level.data = post.level
+
+    return render_template('create_post.html', post=post, form=form, legend='Update Post')
+
+@app.route("/post/<int:post_id>/delete", methods=['GET', 'POST'])
+# @login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Your post has been deleted!', 'success')
+    return redirect(url_for('home'))
+
+@app.route("/post/<int:post_id>/apply", methods=['GET', 'POST'])
+def apply_post(post_id):
+    # post = Post.query.get_or_404(post_id)
+    form = Apply()
 
 
-
+    return render_template('apply.html', post=post, legend='Apply Now')
 
 
 if __name__ == '__main__':

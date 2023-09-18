@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, BooleanField, PasswordField, TextAreaField
+from wtforms import StringField, SubmitField, BooleanField, PasswordField, TextAreaField, IntegerField, FileField
 from wtforms.validators import InputRequired, Length, Email, EqualTo, ValidationError
 
 class RegistrationForm(FlaskForm):
@@ -29,3 +29,11 @@ class PostForm(FlaskForm):
     location = StringField('Location', validators=[InputRequired()])
     level = StringField('Level', validators=[InputRequired()])
     submit = SubmitField('Post')
+
+class Apply(FlaskForm):
+    name = StringField('Name', validators=[InputRequired()])
+    contact = IntegerField('Content', validators=[InputRequired()])
+    email = StringField('email', validators = [InputRequired(), Email() ])
+    content = TextAreaField('Cover Letter', validators=[InputRequired()])
+    resume = FileField('Cover Letter', validators=[InputRequired()])
+    submit = SubmitField('Apply')
