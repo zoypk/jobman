@@ -1,13 +1,18 @@
-{% extends "template.html" %} {% block content %}
+{% extends "layout.html" %}{% from 'bootstrap4/form.html' import render_form %}
+{% block content %}
 <div class="content-section">
   <form method="POST" action="">
     {{form.hidden_tag( )}}
     <fieldset class="form-group">
       <legend class="border-bottom mb-4">Join Today</legend>
       <div class="form-group">
-        {{ form.username.label(class="form-control-label") }}
-        {{ form.username(class="form-control form-control-lg") }}
-      </div></
+        {{ form.usertype.label(class="form-control-label") }} {{
+        form.usertype(class="form-control form-control-lg") }}
+      </div>
+      <div class="form-group">
+        {{ form.username.label(class="form-control-label") }} {{
+        form.username(class="form-control form-control-lg") }}
+      </div>
       <div class="form-group">
         {{ form.email.label(class="form-control-label") }} {{
         form.email(class="form-control form-control-lg") }}
@@ -30,4 +35,5 @@
     <a class="ml-2" href="{{ url_for('login') }}">Sign In</a>
   </small>
 </div>
+<!-- <div>c</div> -->
 {% endblock content%}

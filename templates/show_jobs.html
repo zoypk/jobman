@@ -1,0 +1,40 @@
+{% extends "layout.html" %} {% block content %} {% for job in jobs %}
+<article class="media content-section">
+  <div class="media-body">
+    <div class="article-metadata">
+      <h2>
+        <a class="article-title">{{ job.title }}</a>
+      </h2>
+      <a class="mr-2" href="#">📍{{ job.location }}</a>
+      <small class="text-muted">🏔{{ job.level }}</small>
+    </div>
+    <p class="article-content">{{ job.content }}</p>
+  </div>
+  <div class="col-auto d-none d-lg-block">
+    {% if current_user.usertype == 'Company' %}
+    <a
+      href="/show_applications/{{job.id}}"
+      class="btn btn-primary mb-2"
+      role="button"
+      aria-disabled="true"
+      >Applications</a
+    >
+    <a
+      href="/post/{{job.id}}/apply"
+      class="btn btn-primary mb-2"
+      role="button"
+      aria-disabled="true"
+      >Apply</a
+    >
+    {% else %}
+    <a
+      href="/post/{{job.id}}/apply"
+      class="btn btn-primary mb-2"
+      role="button"
+      aria-disabled="true"
+      >Apply</a
+    >
+    {% endif %}
+  </div>
+</article>
+{% endfor %} {% endblock %}

@@ -1,10 +1,11 @@
-{% extends "template.html" %} {% block content %}
+{% extends "layout.html" %} {% from 'bootstrap4/form.html' import render_form %}
+{% block content %}
 <div class="content-section">
   <form method="POST" action="">
     {{form.hidden_tag( )}}
     <fieldset class="form-group">
       <legend class="border-bottom mb-4">{{legend}}</legend>
-      <div class="form-group">
+      <!-- <div class="form-group">
         {{ form.name.label(class="form-control-label") }} {{
         form.name(class="form-control form-control-lg") }}
       </div>
@@ -21,9 +22,22 @@
         form.content(class="form-control form-control-lg") }}
       </div>
       <div class="form-group">
+        {{ form.experience.label(class="form-control-label") }} {% if
+        form.experience.errors %} {{ form.experience(class="form-control
+        form-control-lg is-invalid") }}
+        <div class="invalid-feedback">
+          {% for error in form.experience.errors %}
+          <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+        {% else %} {{ form.experience(class="form-control form-control-lg") }}
+        {% endif %}
+      </div>
+      <div class="form-group">
         {{ form.resume.label(class="form-control-label") }} {{
         form.resume(class="form-control form-control-lg") }}
-      </div>
+      </div> -->
+      {{ render_form(form) }}
     </fieldset>
     <div class="form-group">{{ form.submit(class="btn btn-outline-info")}}</div>
   </form>
