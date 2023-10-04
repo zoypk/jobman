@@ -52,12 +52,19 @@
 
               {% if current_user.usertype=='Company' %}
               <a
-                href="/post_jobs"
+                href="/post/new"
                 class="nav-item nav-link"
                 role="button"
                 aria-disabled="true"
                 >Post a job</a
               >
+              <!-- <a
+                href="/show_applications/1"
+                class="nav-item nav-link"
+                role="button"
+                aria-disabled="true"
+                >Applications</a
+              > -->
               {% endif %} {% else %}
               <a
                 href="/signup"

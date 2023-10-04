@@ -22,10 +22,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app )
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
-login_manager = LoginManager()
+login_manager = LoginManager(app)
 login_manager.init_app(app)
 # login_manager.login_view = 'users.login'
 
+# forms.py
 class RegistrationForm(FlaskForm):
     usertype = SelectField('Select Usertype',choices=[('Job Seeker', 'Job Seeker'),('Company', 'Company')],validators=[InputRequired()])
     username = StringField('Username',validators=[InputRequired(), Length(min=2, max=20)])
@@ -53,6 +54,9 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
     
+    def validate_username(self, extra_validators=None):
+        return super().validate_on_submit(extra_validators)
+    
 
 class JobForm(FlaskForm):
     title = StringField('Title', validators=[InputRequired()])
@@ -61,20 +65,38 @@ class JobForm(FlaskForm):
     level = StringField('Level', validators=[InputRequired()])
     submit = SubmitField('Post')
 
-class Apply(FlaskForm):
+class ApplyForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired()])
-    contact = IntegerField('Content', validators=[InputRequired()])
+    contact = StringField('Mobile Number', validators=[Length(min=10, max=15, message="Enter a valid mobile number")])
     email = StringField('email', validators = [InputRequired(), Email() ])
     content = StringField('Cover Letter', validators=[InputRequired()])
     experience = IntegerField('Professional Experience in years', validators=[InputRequired()])
-    resume = FileField('Cover Letter', validators=[ FileAllowed(['jpg', 'png', 'bmp'])])
+    degree = SelectField('Degree',
+                         default='Bachelor',    
+                         choices=[('School', 'School'),
+                                  ('HighSchool', 'HighSchool'),
+                                  ('Bachelor', 'Bachelor'),
+                                  ('Master', 'Master'),
+                                  ('PHD', 'PHD')],)
+    # resume = FileField('Cover Letter', validators=[ FileAllowed(['jpg', 'png', 'bmp'])])
+    # cv = FileField('Update Resume', validators=[FileAllowed(['jpg', 'png', 'bmp'])])
     submit = SubmitField('Apply')
 
+class Apply(FlaskForm):
+                status=SelectField('',
+                         default='hold',    
+                         choices=[('approve', 'approve'),
+                                  ('reject', 'reject'),
+                                  ('hold', 'hold')])
+                submit = SubmitField('Update')
+
+
+
 @login_manager.user_loader
-def load_user(user_id):
-      return User.query.get(int(user_id))
+def load_user(id):
+      return User.query.get(int(id))
 
-
+# models
 class User(db.Model, UserMixin):
       id = db.Column(db.Integer, primary_key=True)
       username = db.Column(db.String(20), unique=True, nullable=False)
@@ -89,15 +111,21 @@ class User(db.Model, UserMixin):
       
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gender = db.Column(db.String(20), nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=date.today())
-    degree = db.Column(db.String(20), nullable=False)
-    industry = db.Column(db.String(50), nullable=False)
-    experience = db.Column(db.Integer, nullable=False)
-    cv = db.Column(db.String(20), nullable=False)
-    cover_letter = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
+    contact = db.Column(db.String(120), unique=True)
+    email = db.Column(db.String(120), unique=True)
+    name = db.Column(db.String(20), )
+    experience = db.Column(db.Integer, )
+    cover_letter = db.Column(db.Text, )
+    id = db.Column(db.Integer, primary_key=True)
+    # gender = db.Column(db.String(20), nullable=False)
+    date_posted = db.Column(db.DateTime, default=date.today())
+    degree = db.Column(db.String(20))
+    # industry = db.Column(db.String(50), )
+    # cv = db.Column(db.String(20), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id') )
+    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id') )
+    status = db.Column(db.String(20))
+
 class Jobs(db.Model):
       id = db.Column(db.Integer, primary_key=True)
       title = db.Column(db.String(100), nullable=False)
@@ -130,14 +158,6 @@ class Jobs(db.Model):
 @login_required
 def posted_jobs():
     jobs = Jobs.query.filter_by(job_applier=current_user)
-    print(jobs)
-    return render_template('show_jobs.html', jobs=jobs)
-
-@app.route("/")
-@app.route("/show_jobs")
-def show_jobs():
-    jobs = Jobs.query.all()
-    print(jobs)
     return render_template('show_jobs.html', jobs=jobs)
 
 # def save_picture(form_picture):
@@ -146,11 +166,6 @@ def show_jobs():
 #     picture_path = os.path.join(app.root_path, 'static', picture_fn)
 #     form_picture.save(picture_path)
 #     return picture_fn
-
-
-@app.route("/about")
-def about():
-    return render_template('about.html')
 
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
@@ -176,25 +191,34 @@ def login():
         if current_user.usertype == 'Job Seeker':
             return redirect(url_for('show_jobs'))
         elif current_user.usertype == 'Company':
-            return redirect(url_for('posted_jobs'))
+            return redirect(url_for('show_jobs'))
 
     if form.validate_on_submit():
-        print('password clear')
         user = User.query.filter_by(email=form.email.data).first_or_404()
-        if form.usertype.data == 'Company':
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('posted_jobs'))
-        elif form.usertype.data == 'Job Seeker': 
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            if form.usertype.data == 'Company':
+                login_user(user, remember=form.remember.data)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
+            elif form.usertype.data == 'Job Seeker': 
+                login_user(user, remember=form.remember.data)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
         else:
-            flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
+                flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
     else:
         flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
         return render_template('login.html', form=form)
     return render_template('login.html', form=form)
+
+@app.route("/")
+@app.route("/show_jobs")
+def show_jobs():
+    jobs = Jobs.query.all()
+    if current_user.is_authenticated:
+        return render_template('show_jobs.html', jobs=jobs)
+    else:    return redirect(url_for('login')) 
+
 
 @app.route("/logout")
 @login_required
@@ -205,6 +229,9 @@ def logout():
 @app.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def post_jobs():
+    if current_user.is_authenticated:
+        if current_user.usertype == 'Job Seeker':
+            return redirect(url_for('show_jobs'))
     form = JobForm()
     if form.validate_on_submit():
         job = Jobs(title=form.title.data,
@@ -217,7 +244,7 @@ def post_jobs():
         return redirect(url_for('posted_jobs'))
     return render_template('create_post.html', form=form)
 
-@app.route("/post/<int:post_id>")
+@app.route("/job/<int:post_id>")
 def post(post_id): 
     post = Jobs.query.get_or_404(post_id)
     return render_template('post.html', title=post.title, post=post)
@@ -246,34 +273,90 @@ def update_post(post_id):
 @login_required
 def delete_post(post_id):
     post = Jobs.query.get_or_404(post_id)
-    if post.author != current_user:
+    if current_user.usertype == 'Job Seeker':
         abort(403)
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted!', 'success')
-    return redirect(url_for('home'))
+    return redirect(url_for('show_jobs'))
 
 @app.route("/post/<int:job_id>/apply", methods=['GET', 'POST'])
+@login_required
 def apply_post(job_id):
     # post = Post.query.get_or_404(post_id)
-    form = Apply()
+    form = ApplyForm()
     job = Jobs.query.filter_by(id=job_id).first()
     if form.validate_on_submit():
-        application = Application(experience=form.experience.data,
+        apply = Application(name=form.name.data,
+                            experience=form.experience.data,
                               cover_letter=form.content.data,
-                              application_submiter=current_user,
-                              application_jober=job,
+                              email=form.email.data,
+                              contact=form.contact.data,
+                              job_id=job_id,
+                              user_id=current_user.id,
+                              degree=form.degree.data
+                            #   content=form.content.data
+                            #   cv=form.cv.data.filename
+                            #   application_submiter=current_user,
+                            #   application_jober=job,
                             #   resume=form.resume.data.filename
                             )
-        print(form.resume.data)
         # picture_file = save_picture(form.resume.data)
-        db.session.add(application)
+        db.session.add(apply)
         db.session.commit()
         return redirect(url_for('show_jobs'))
     return render_template('apply.html', form=form, legend='Apply Now')
 
+@app.route("/show_applications/<jobid>", methods=['GET', 'POST'])
+@login_required
+def show_applications(jobid):
+    if current_user.usertype == 'Job Seeker':
+        abort(403)
+    form = Apply()
+    applications = Application.query.filter_by(job_id=jobid).order_by(Application.degree, Application.experience.desc()).all()
+    # applications = Application.query.all()
+    job = Jobs.query.all()
+    if form.validate_on_submit():
+         print(form.status.data)
+        # db.session.add(status)
+        # db.session.commit()
+    return render_template('show_applications.html',applications=applications , job=job , form=form)
 
 
+@app.route("/show_applications/<int:post_id>/delete", methods=['GET', 'POST'])
+@login_required
+def delete_app(post_id):
+    post = Jobs.query.get_or_404(post_id)
+    if current_user.usertype == 'Job Seeker':
+        abort(403)
+    
+    db.session.delete(post)
+    db.session.commit()
+    flash('Your post has been deleted!', 'success')
+    return redirect(url_for('show_jobs'))
+
+@app.route("/applications/<id>/", methods=['GET', 'POST'])
+def update_app(id):
+    application = Application.query.get_or_404(id)
+    form = ApplyForm()
+    form2 = Apply()
+    id=id
+    # apply = Application(status=form2.status.data)
+    if form2.validate_on_submit():
+        print(form2.status.data)
+        application.status = form2.status.data
+        db.session.commit()
+        flash('Application has been updated', 'success')
+        # return redirect(url_for('/show_applications/<id>', post_id=post.id))
+    
+    elif request.method == 'GET':
+        form.name.data = application.name
+        form.email.data = application.email
+        form.experience.data = application.experience
+        form.degree.data = application.degree
+        form2.status.data = application.status
+
+    return render_template('application.html', application=application, id=id , form=form, form2=form2)
 
 if __name__ == '__main__':
     app.run(debug=True)

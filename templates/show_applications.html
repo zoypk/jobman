@@ -1,0 +1,43 @@
+{% extends "layout.html" %} {% block content %}
+<section class="jumbotron text-center">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <h2>Applications</h2>
+  <table id="applicationTable">
+    <form method="post">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Experience (years)</th>
+          <th>Degree</th>
+          <th>Application Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <div class="form-group">
+          {{ form.submit(class="btn btn-outline-info")}}
+        </div>
+        {% for application in applications %}
+        <tr>
+          <td>
+            <a href="{{ url_for('update_app', id=application.id)}}"
+              >{{ application.name }}</a
+            >
+          </td>
+          <!-- <td>{{ job.title }}</td> -->
+          <td>{{ application.experience }}</td>
+          <td>{{ application.degree }}</td>
+          <td>{{ application.date_posted.strftime('%Y-%m-%d') }}</td>
+          <td>{{ application.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </form>
+  </table>
+
+  <script>
+    $(document).ready(function () {
+      $("#applicationTable").DataTable();
+    });
+  </script>
+</section>
+{% endblock %}

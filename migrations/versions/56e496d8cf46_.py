@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e6a4d4417b6d
+Revision ID: 56e496d8cf46
 Revises: 
-Create Date: 2023-09-26 10:10:17.679582
+Create Date: 2023-10-03 15:22:46.883886
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e6a4d4417b6d'
+revision = '56e496d8cf46'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,18 +40,20 @@ def upgrade():
     )
     op.create_table('application',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('gender', sa.String(length=20), nullable=False),
-    sa.Column('date_posted', sa.DateTime(), nullable=False),
-    sa.Column('degree', sa.String(length=20), nullable=False),
-    sa.Column('industry', sa.String(length=50), nullable=False),
-    sa.Column('experience', sa.Integer(), nullable=False),
-    sa.Column('cv', sa.String(length=20), nullable=False),
-    sa.Column('cover_letter', sa.Text(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('job_id', sa.Integer(), nullable=False),
+    sa.Column('contact', sa.String(length=120), nullable=True),
+    sa.Column('email', sa.String(length=120), nullable=True),
+    sa.Column('name', sa.String(length=20), nullable=True),
+    sa.Column('experience', sa.Integer(), nullable=True),
+    sa.Column('cover_letter', sa.Text(), nullable=True),
+    sa.Column('date_posted', sa.DateTime(), nullable=True),
+    sa.Column('degree', sa.String(length=20), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('job_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['job_id'], ['jobs.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('contact'),
+    sa.UniqueConstraint('email')
     )
     # ### end Alembic commands ###
 
