@@ -9,13 +9,11 @@
           <th>Name</th>
           <th>Experience (years)</th>
           <th>Degree</th>
-          <th>Application Date</th>
+          <th>Date</th>
+          <th>status</th>
         </tr>
       </thead>
       <tbody>
-        <div class="form-group">
-          {{ form.submit(class="btn btn-outline-info")}}
-        </div>
         {% for application in applications %}
         <tr>
           <td>
@@ -26,7 +24,7 @@
           <!-- <td>{{ job.title }}</td> -->
           <td>{{ application.experience }}</td>
           <td>{{ application.degree }}</td>
-          <td>{{ application.date_posted.strftime('%Y-%m-%d') }}</td>
+          <td>{{ application.date_posted.strftime('%d-%m') }}</td>
           <td>{{ application.status }}</td>
         </tr>
         {% endfor %}
