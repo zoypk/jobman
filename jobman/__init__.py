@@ -12,15 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 
-bootstrap = Bootstrap5(app)
-app.config['SECRET_KEY'] = '998251e474ef6a9ae2b6b0804e7d4eb0'
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance/site.db")}'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db = SQLAlchemy(app )
-migrate = Migrate(app, db)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-login_manager.init_app(app)
+
 # login_manager.login_view = 'users.login'
 
 class Config:
@@ -36,24 +28,35 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    db.init_app(app)
-    bcrypt.init_app(app)
-    login_manager.init_app(app)
+
 
     from jobman.user.routes import users
     from jobman.post.routes import posts
     app.register_blueprint(users)
     app.register_blueprint(posts)
-    app.register_blueprint(main)
+
+
+    bootstrap = Bootstrap5(app)
+    app.config['SECRET_KEY'] = '998251e474ef6a9ae2b6b0804e7d4eb0'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance/site.db")}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+    db = SQLAlchemy(app )
+    migrate = Migrate(app, db)
+    bcrypt = Bcrypt(app)
+    login_manager = LoginManager(app)
+    login_manager.init_app(app)
+
+
+    db.init_app(app)
+    bcrypt.init_app(app)
+    login_manager.init_app(app)
+    
+
+    @login_manager.user_loader
+    def load_user(id):
+        return User.query.get(int(id))
 
     return app
-
-
-
-@login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
-
 
 
 
