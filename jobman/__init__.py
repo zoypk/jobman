@@ -11,7 +11,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 
-
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+login_manager = LoginManager()
+bootstrap = Bootstrap5()
 
 # login_manager.login_view = 'users.login'
 
@@ -36,15 +39,13 @@ def create_app(config_class=Config):
     app.register_blueprint(posts)
 
 
-    bootstrap = Bootstrap5(app)
+
     app.config['SECRET_KEY'] = '998251e474ef6a9ae2b6b0804e7d4eb0'
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance/site.db")}'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-    db = SQLAlchemy(app )
     migrate = Migrate(app, db)
-    bcrypt = Bcrypt(app)
-    login_manager = LoginManager(app)
     login_manager.init_app(app)
+
 
 
     db.init_app(app)
