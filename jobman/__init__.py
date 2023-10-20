@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 import os
 from flask_migrate import Migrate
-from flask_bootstrap import Bootstrap5
-from jobman.models import User
+from flask_bootstrap import Bootstrap4
+# from jobman.models import User
 from flask_login import LoginManager
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +14,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
-bootstrap = Bootstrap5()
+bootstrap = Bootstrap4()
 
 # login_manager.login_view = 'users.login'
 
@@ -53,9 +53,6 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     
 
-    @login_manager.user_loader
-    def load_user(id):
-        return User.query.get(int(id))
 
     return app
 

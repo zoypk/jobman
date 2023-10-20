@@ -1,7 +1,7 @@
 from flask import render_template, url_for, flash, redirect, request, abort, Blueprint
 from flask_login import current_user, login_required
-from forms import JobForm, ApplyForm, Apply
-from models import Jobs, Application
+from jobman.forms import JobForm, ApplyForm, Apply
+from jobman.models import Jobs, Application
 from jobman import db
 
 posts = Blueprint('post', __name__)
@@ -15,27 +15,27 @@ def posted_jobs():
 @posts.route("/show_jobs")
 def show_jobs():
     jobs = Jobs.query.all()
-    if current_user.is_authenticated:
+    if current_user.is_authenticated: # type: ignore
         return render_template('show_jobs.html', jobs=jobs)
-    else:    return redirect(url_for('login'))
+    else:    return redirect(url_for('users.login'))
 
 
 @posts.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def post_jobs():
-    if current_user.is_authenticated:
-        if current_user.usertype == 'Job Seeker':
-            return redirect(url_for('show_jobs'))
+    if current_user.is_authenticated: # type: ignore
+        if current_user.usertype == 'Job Seeker': # type: ignore
+            return redirect(url_for('users.show_jobs'))
     form = JobForm()
     if form.validate_on_submit():
         job = Jobs(title=form.title.data, 
                 content=form.content.data,
                 location=form.location.data,
                 level=form.level.data,
-                job_applier=current_user)
+                job_applier=current_user) # type: ignore
         db.session.add(job)
         db.session.commit()
-        return redirect(url_for('posted_jobs'))
+        return redirect(url_for('users.posted_jobs'))
     return render_template('create_post.html', form=form)
 
 @posts.route("/job/<int:post_id>")
@@ -54,7 +54,7 @@ def update_post(post_id):
         post.level = form.level.data
         db.session.commit()
         flash('Your post has been updated', 'success')
-        return redirect(url_for('post', post_id=post.id))
+        return redirect(url_for('post.post', post_id=post.id))
     elif request.method == 'GET':
         form.title.data = post.title
         form.content.data = post.content
@@ -67,12 +67,12 @@ def update_post(post_id):
 @login_required
 def delete_post(post_id):
     post = Jobs.query.get_or_404(post_id)
-    if current_user.usertype == 'Job Seeker':
+    if current_user.usertype == 'Job Seeker': # type: ignore
         abort(403)
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted!', 'success')
-    return redirect(url_for('show_jobs'))
+    return redirect(url_for('users.show_jobs'))
 
 @posts.route("/post/<int:job_id>/apply", methods=['GET', 'POST'])
 @login_required
@@ -87,24 +87,24 @@ def apply_post(job_id):
                             email=form.email.data,
                             contact=form.contact.data,
                             job_id=job_id,
-                            user_id=current_user.id,
+                            user_id=current_user.id, # type: ignore
                             degree=form.degree.data
                             #   content=form.content.data
                             #   cv=form.cv.data.filename
                             #   application_submiter=current_user,
                             #   application_jober=job,
                             #   resume=form.resume.data.filename
-                            )
+                            ) # type: ignore
         # picture_file = save_picture(form.resume.data)
         db.session.add(apply)
         db.session.commit()
-        return redirect(url_for('show_jobs'))
+        return redirect(url_for('users.show_jobs'))
     return render_template('apply.html', form=form, legend='Apply Now')
 
 @posts.route("/show_applications/<jobid>", methods=['GET', 'POST'])
 @login_required
 def show_applications(jobid):
-    if current_user.usertype == 'Job Seeker':
+    if current_user.usertype == 'Job Seeker': # type: ignore
         abort(403)
     form = Apply()
     applications = Application.query.filter_by(job_id=jobid).order_by(Application.degree, Application.experience.desc()).all()
@@ -121,13 +121,13 @@ def show_applications(jobid):
 @login_required
 def delete_app(post_id):
     post = Jobs.query.get_or_404(post_id)
-    if current_user.usertype == 'Job Seeker':
+    if current_user.usertype == 'Job Seeker': # type: ignore
         abort(403)
     
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted!', 'success')
-    return redirect(url_for('show_jobs'))
+    return redirect(url_for('users.show_jobs'))
 
 @posts.route("/applications/<id>/", methods=['GET', 'POST'])
 def update_app(id):

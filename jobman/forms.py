@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField, IntegerField, TextAreaField
 from wtforms.validators import InputRequired, Length, Email, EqualTo, ValidationError
-from models import User
+from jobman.models import User
 
 class RegistrationForm(FlaskForm):
     usertype = SelectField('Select Usertype',choices=[('Job Seeker', 'Job Seeker'),('Company', 'Company')],validators=[InputRequired()])

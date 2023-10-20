@@ -1,6 +1,11 @@
 from flask_login import UserMixin
 from datetime import date
-from jobman import db
+from jobman import db, login_manager
+
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
