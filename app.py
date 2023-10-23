@@ -196,21 +196,21 @@ def login():
             return redirect(url_for('show_jobs'))
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data)
+        user = User.query.filter_by(email=form.email.data).first()  # Execute the query to get the user
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             if form.usertype.data == 'Company':
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
-            elif form.usertype.data == 'Job Seeker': 
+            elif form.usertype.data == 'Job Seeker':
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
         else:
-                flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
+            flash('Login Unsuccessful. Please check email, password, and usertype', 'danger')
     else:
-        flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
-        return render_template('login.html', form=form)
+        flash('Login Unsuccessful. Please check email, password, and usertype', 'danger')
+    
     return render_template('login.html', form=form)
 
 @app.route("/")
