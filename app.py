@@ -18,7 +18,9 @@ app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 app.config['SECRET_KEY'] = '998251e474ef6a9ae2b6b0804e7d4eb0'
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance/site.db")}'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://mohammedzohil:znode123@localhost/mydb'
+
 db = SQLAlchemy(app )
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
@@ -194,7 +196,7 @@ def login():
             return redirect(url_for('show_jobs'))
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first_or_404()
+        user = User.query.filter_by(email=form.email.data)
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             if form.usertype.data == 'Company':
                 login_user(user, remember=form.remember.data)
