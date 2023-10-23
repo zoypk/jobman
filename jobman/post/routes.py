@@ -35,7 +35,7 @@ def post_jobs():
                 job_applier=current_user) # type: ignore
         db.session.add(job)
         db.session.commit()
-        return redirect(url_for('users.posted_jobs'))
+        return redirect(url_for('post.posted_jobs'))
     return render_template('create_post.html', form=form)
 
 @posts.route("/job/<int:post_id>")

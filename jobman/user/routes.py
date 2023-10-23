@@ -11,9 +11,9 @@ users = Blueprint('users', __name__)
 def signup():
     if current_user.is_authenticated: # type: ignore
         if current_user.usertype == 'Job Seeker': # type: ignore
-            return redirect(url_for('show_jobs'))
+            return redirect(url_for('post.show_jobs'))
         elif current_user.usertype == 'Company': # type: ignore
-            return redirect(url_for('posted_jobs'))
+            return redirect(url_for('post.posted_jobs'))
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
@@ -29,21 +29,24 @@ def login():
     form = LoginForm()
     if current_user.is_authenticated: # type: ignore
         if current_user.usertype == 'Job Seeker': # type: ignore
-            return redirect(url_for('show_jobs'))
+            return redirect(url_for('post.show_jobs'))
         elif current_user.usertype == 'Company': # type: ignore
-            return redirect(url_for('users.show_jobs'))
+            return redirect(url_for('post.show_jobs'))
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first_or_404()
+        print(User.query.all())
+        user = User.query.filter_by(email=form.email.data).first()
+        if not user:
+            flash("Invalid email", "danger")
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             if form.usertype.data == 'Company':
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
+                return redirect(next_page) if next_page else redirect(url_for('post.show_jobs'))
             elif form.usertype.data == 'Job Seeker': 
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for('show_jobs'))
+                return redirect(next_page) if next_page else redirect(url_for('post.show_jobs'))
         else:
                 flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
     else:

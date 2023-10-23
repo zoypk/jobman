@@ -1,4 +1,4 @@
-{% extends "layout.html" %} {% from 'bootstrap4/forms.html' import render_form%}
+{% extends "layout.html" %} {% from 'bootstrap/form.html' import render_form%}
 {% block content %}
 <div class="content-section">
   <form method="POST" action="">
@@ -15,7 +15,7 @@
 <div class="border-top pt-3">
   <small class="text-muted">
     Didnt signup?
-    <a class="ml-2" href="{{url_for('signup')}}">Sign Up</a></small
+    <a class="ml-2" href="{{url_for('users.signup')}}">Sign Up</a></small
   >
 </div>
 {% endblock content%}
