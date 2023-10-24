@@ -27,31 +27,27 @@ def signup():
 @users.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if current_user.is_authenticated: # type: ignore
-        if current_user.usertype == 'Job Seeker': # type: ignore
+    if current_user.is_authenticated:
+        if current_user.usertype == 'Job Seeker':
             return redirect(url_for('post.show_jobs'))
-        elif current_user.usertype == 'Company': # type: ignore
+        elif current_user.usertype == 'Company':
             return redirect(url_for('post.show_jobs'))
 
     if form.validate_on_submit():
-        print(User.query.all())
-        user = User.query.filter_by(email=form.email.data).first()
-        if not user:
-            flash("Invalid email", "danger")
+        user = User.query.filter_by(email=form.email.data).first()  # Execute the query to get the user
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             if form.usertype.data == 'Company':
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('post.show_jobs'))
-            elif form.usertype.data == 'Job Seeker': 
+            elif form.usertype.data == 'Job Seeker':
                 login_user(user, remember=form.remember.data)
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('post.show_jobs'))
         else:
-                flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
+            flash('Login Unsuccessful. Please check email, password, and usertype', 'danger')
     else:
-        flash('Login Unsuccessful. Please check email, password and usertype', 'danger')
-        return render_template('login.html', form=form)
+        flash('Login Unsuccessful. Please check email, password, and usertype', 'danger')
     return render_template('login.html', form=form)
 @users.route("/logout")
 @login_required

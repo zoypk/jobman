@@ -42,7 +42,7 @@ def create_app(config_class=Config):
 
     app.config['SECRET_KEY'] = '998251e474ef6a9ae2b6b0804e7d4eb0'
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "instance/site.db")}'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://mohammedzohil:znode123@localhost/mydb'
     migrate = Migrate(app, db)
     login_manager.init_app(app)
 
