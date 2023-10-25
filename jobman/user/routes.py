@@ -27,14 +27,14 @@ def signup():
 @users.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if current_user.is_authenticated:
-        if current_user.usertype == 'Job Seeker':
+    if current_user.is_authenticated: # type: ignore
+        if current_user.usertype == 'Job Seeker': # type: ignore
             return redirect(url_for('post.show_jobs'))
-        elif current_user.usertype == 'Company':
+        elif current_user.usertype == 'Company': # type: ignore
             return redirect(url_for('post.show_jobs'))
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()  # Execute the query to get the user
+        user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             if form.usertype.data == 'Company':
                 login_user(user, remember=form.remember.data)
